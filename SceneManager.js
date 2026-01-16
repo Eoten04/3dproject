@@ -298,7 +298,7 @@ export class SceneManager {
 
         this.createDoorBlocker(1.5, 2.8, 7);
 
-        this.loader.load('includes/door.glb', (gltf) => {
+        this.loader.load('assets/door.glb', (gltf) => {
             const doorModel = gltf.scene;
             doorModel.name = "DoorModel";
 
@@ -324,7 +324,7 @@ export class SceneManager {
             this.door = this.doorPivot;
 
             this.doorSound = new THREE.Audio(this.listener);
-            this.audioLoader.load('includes/sounds/door.wav', (buffer) => {
+            this.audioLoader.load('assets/sounds/door.wav', (buffer) => {
                 this.doorSound.setBuffer(buffer);
                 this.doorSound.setVolume(0.5);
             });
@@ -343,7 +343,7 @@ export class SceneManager {
             this.scene.add(this.doorHitbox);
         });
 
-        this.loader.load('includes/door_bell.glb', (gltf) => {
+        this.loader.load('assets/door_bell.glb', (gltf) => {
             this.doorbell = gltf.scene;
             this.doorbell.name = "Doorbell";
 
@@ -384,12 +384,12 @@ export class SceneManager {
             }
 
             this.doorbellSound = new THREE.Audio(this.listener);
-            this.audioLoader.load('includes/sounds/doorbell.wav', (buffer) => {
+            this.audioLoader.load('assets/sounds/doorbell.wav', (buffer) => {
                 this.doorbellSound.setBuffer(buffer);
             });
         });
 
-        this.loader.load('includes/table.glb', (gltf) => {
+        this.loader.load('assets/table.glb', (gltf) => {
             this.table = gltf.scene;
             this.table.name = "Table";
 
@@ -411,7 +411,7 @@ export class SceneManager {
                 }
             });
 
-            this.loader.load('includes/lamp.glb', (gltf) => {
+            this.loader.load('assets/lamp.glb', (gltf) => {
                 this.lamp = gltf.scene;
                 this.lamp.name = "Lamp";
 
@@ -451,7 +451,7 @@ export class SceneManager {
                 this.scene.add(this.lampHitbox);
 
                 this.lampSound = new THREE.Audio(this.listener);
-                this.audioLoader.load('includes/sounds/lamp.wav', (buffer) => {
+                this.audioLoader.load('assets/sounds/lamp.wav', (buffer) => {
                     this.lampSound.setBuffer(buffer);
                     this.lampSound.setVolume(0.5);
                 });
