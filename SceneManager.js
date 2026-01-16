@@ -540,7 +540,7 @@ export class SceneManager {
 
         const targetRotation = this.doorOpen ? -Math.PI / 2 : 0;
         const startRotation = this.door.rotation.y;
-        const duration = 0.5; // 1 second animation
+        const duration = 0.25; // 1 second animation
         let elapsed = 0;
 
         // Play door sound
