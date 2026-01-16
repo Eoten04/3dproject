@@ -362,13 +362,60 @@ export class SceneManager {
             this.scene.add(this.doorHitbox);
         });
 
-        const gongGeo = new THREE.CylinderGeometry(1, 1, 0.2, 32);
-        const gongMat = new THREE.MeshStandardMaterial({ color: 0xD4AF37, metalness: 0.8, roughness: 0.2 });
-        const gong = new THREE.Mesh(gongGeo, gongMat);
-        gong.rotation.x = Math.PI / 2;
-        gong.position.set(5, 1.5, -5);
-        gong.name = "Gong";
-        this.scene.add(gong);
+        // Doorbell Setup
+        this.loader.load('includes/door_bell.glb', (gltf) => {
+            this.doorbell = gltf.scene;
+            this.doorbell.name = "Doorbell";
+
+            // Scale and Position
+            this.doorbell.scale.set(0.5, 0.5, 0.5);
+            // Position on the front wall (Local to HouseGroup)
+            // Front wall is at z = houseDepth / 2 (3.5)
+            // We put it slightly in front: 3.5 + 0.2 = 3.7
+            this.doorbell.position.set(1.2, 1.5, 3.5);
+            this.doorbell.rotation.y = 0; // Face outward
+
+            // Enable shadows
+            this.doorbell.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            // Add to houseGroup instead of scene to stick to the house
+            const houseGroup = this.scene.getObjectByName("House");
+            if (houseGroup) {
+                houseGroup.add(this.doorbell);
+            } else {
+                this.scene.add(this.doorbell);
+            }
+
+            // Doorbell Hitbox (Consistent with Door/Lamp style)
+            const dbHitboxGeo = new THREE.BoxGeometry(0.5, 0.5, 0.2);
+            const dbHitboxMat = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                wireframe: true,
+                transparent: true,
+                opacity: 0, // Fully transparent but renderable
+                visible: true // Ensure raycaster hits it
+            });
+            this.doorbellHitbox = new THREE.Mesh(dbHitboxGeo, dbHitboxMat);
+            this.doorbellHitbox.position.copy(this.doorbell.position);
+            this.doorbellHitbox.name = "DoorbellHitbox";
+
+            if (houseGroup) {
+                houseGroup.add(this.doorbellHitbox);
+            } else {
+                this.scene.add(this.doorbellHitbox);
+            }
+
+            // Doorbell Sound
+            this.doorbellSound = new THREE.Audio(this.listener);
+            this.audioLoader.load('includes/sounds/doorbell.wav', (buffer) => {
+                this.doorbellSound.setBuffer(buffer);
+            });
+        });
 
 
 
@@ -509,6 +556,15 @@ export class SceneManager {
         }
 
         return this.lampIsOn;
+    }
+
+    ringDoorbell() {
+        if (this.doorbellSound && this.doorbellSound.buffer) {
+            if (this.doorbellSound.isPlaying) {
+                this.doorbellSound.stop();
+            }
+            this.doorbellSound.play();
+        }
     }
 
     render() {

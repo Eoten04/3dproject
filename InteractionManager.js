@@ -12,6 +12,7 @@ export class InteractionManager {
 
         this.onToggleLamp = () => { }; // Callback for lamp toggle
         this.onToggleDoor = () => { }; // Callback for door toggle
+        this.onRingDoorbell = () => { }; // Callback for doorbell
 
         this.init();
     }
@@ -33,29 +34,41 @@ export class InteractionManager {
 
     handleInteraction(object) {
         let target = object;
-        while (target.parent && target.parent !== this.scene) {
-            if (target.name) break;
+        let found = false;
+
+        // Traverse up checking for known interactables
+        while (target && target !== this.scene) {
+            console.log("Checking target:", target.name, target.type);
+
+            if (target.name === 'DoorbellHitbox' || target.name === 'Doorbell') {
+                this.ringDoorbell();
+                found = true;
+                break;
+            } else if (target.name === 'Shoji') {
+                this.animateDoor(target);
+                found = true;
+                break;
+            } else if (target.name === 'LampHitbox' || target.name === 'Lamp') {
+                this.toggleLamp();
+                found = true;
+                break;
+            } else if (target.name === 'DoorPivot' || target.name === 'DoorModel' || target.name === 'DoorHitbox') {
+                this.toggleDoor();
+                found = true;
+                break;
+            }
+
             target = target.parent;
         }
 
-        console.log("Clicked:", target.name);
-
-        if (target.name === 'Gong') {
-            this.playGongSound();
-        } else if (target.name === 'Shoji') {
-            this.animateDoor(target);
-        } else if (target.name === 'Statue') {
-            this.showInfo(target.userData.info);
-        } else if (target.name === 'LampHitbox' || target.name === 'Lamp') {
-            this.toggleLamp();
-        } else if (target.name === 'DoorPivot' || target.name === 'DoorModel' || target.name === 'DoorHitbox') {
-            this.toggleDoor();
+        if (!found) {
+            console.log("No interactive object found in hierarchy.");
         }
     }
 
-    playGongSound() {
-        console.log("BONG! (Gong sound played)");
-        this.uiContainer.innerText = "BONG!";
+    ringDoorbell() {
+        this.onRingDoorbell();
+        this.uiContainer.innerText = "*Ding Dong*";
         setTimeout(() => this.uiContainer.innerText = "", 1000);
     }
 

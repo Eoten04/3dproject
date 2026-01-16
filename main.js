@@ -25,6 +25,10 @@ interactionManager.onToggleDoor = () => {
     sceneManager.toggleDoor();
 };
 
+interactionManager.onRingDoorbell = () => {
+    sceneManager.ringDoorbell();
+};
+
 instructions.addEventListener('click', () => {
     inputHandler.lock();
 });
