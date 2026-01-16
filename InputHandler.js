@@ -12,11 +12,11 @@ export class InputHandler {
         this.velocity = new THREE.Vector3();
         this.direction = new THREE.Vector3();
         this.isLocked = false;
+        this.speed = 250.0; // Configurable movement speed
 
         this.onLock = () => { };
         this.onUnlock = () => { };
         this.onToggleDayNight = () => { };
-        this.onToggleDoor = () => { };
 
         this.init();
     }
@@ -44,9 +44,6 @@ export class InputHandler {
                     break;
                 case 'KeyN':
                     this.onToggleDayNight();
-                    break;
-                case 'KeyE':
-                    this.onToggleDoor();
                     break;
             }
         };
@@ -106,9 +103,9 @@ export class InputHandler {
             this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
             this.direction.normalize();
 
-            // Acceleration
-            if (this.moveForward || this.moveBackward) this.velocity.z -= this.direction.z * 250.0 * safeDelta;
-            if (this.moveLeft || this.moveRight) this.velocity.x -= this.direction.x * 250.0 * safeDelta;
+            // Acceleration (using configurable speed)
+            if (this.moveForward || this.moveBackward) this.velocity.z -= this.direction.z * this.speed * safeDelta;
+            if (this.moveLeft || this.moveRight) this.velocity.x -= this.direction.x * this.speed * safeDelta;
 
             // Manual Movement Implementation
             const camera = this.camera;

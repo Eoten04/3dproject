@@ -9,12 +9,17 @@ export class SceneManager {
         this.doorOpen = false;
         this.doorAnimating = false;
 
+        // Audio setup
+        this.listener = new THREE.AudioListener();
+        this.audioLoader = new THREE.AudioLoader();
+
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x87CEEB);
         this.scene.fog = new THREE.Fog(0x87CEEB, 10, 50);
 
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.set(0, 1.6, 5);
+        this.camera.add(this.listener); // Add audio listener to camera
 
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -185,6 +190,27 @@ export class SceneManager {
             this.scene.add(this.doorPivot);
 
             this.door = this.doorPivot; // Reference for animation
+
+            // Load door opening sound
+            this.doorSound = new THREE.Audio(this.listener);
+            this.audioLoader.load('includes/sounds/door.wav', (buffer) => {
+                this.doorSound.setBuffer(buffer);
+                this.doorSound.setVolume(0.5);
+            });
+
+            // Add invisible hitbox for door
+            const doorHitboxGeometry = new THREE.BoxGeometry(doorWidth, doorHeight, 0.3);
+            const doorHitboxMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ff00,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.5
+            });
+            this.doorHitbox = new THREE.Mesh(doorHitboxGeometry, doorHitboxMaterial);
+            this.doorHitbox.position.set(0, doorHeight / 2, -10 + houseDepth / 2);
+            this.doorHitbox.name = "DoorHitbox";
+            this.doorHitbox.visible = false; // Make hitbox invisible
+            this.scene.add(this.doorHitbox);
         });
 
         const gongGeo = new THREE.CylinderGeometry(1, 1, 0.2, 32);
@@ -228,8 +254,8 @@ export class SceneManager {
                 this.lamp.name = "Lamp";
 
                 // Position lamp on top of the table (same x,z as table, higher y)
-                this.lamp.position.set(-2.5, 1.2, -12);
-                this.lamp.scale.set(0.8, 0.8, 0.8);
+                this.lamp.position.set(-2.5, 1.15, -12);
+                this.lamp.scale.set(2, 2, 2);
 
                 // Enable shadows
                 this.lamp.traverse((child) => {
@@ -237,6 +263,42 @@ export class SceneManager {
                         child.castShadow = true;
                         child.receiveShadow = true;
                     }
+                });
+
+                // Add a point light to the lamp (initially off) with optimized shadows
+                this.lampLight = new THREE.PointLight(0xffaa44, 0, 12, 2);
+                this.lampLight.position.set(this.lamp.position.x, this.lamp.position.y + 1, this.lamp.position.z);
+                // Enable shadows with optimized settings for table area
+                this.lampLight.castShadow = true;
+                this.lampLight.shadow.mapSize.width = 1024;
+                this.lampLight.shadow.mapSize.height = 1024;
+                // Limit shadow range to focus on table area
+                this.lampLight.shadow.camera.near = 0.1;
+                this.lampLight.shadow.camera.far = 4; // Short range to avoid wall artifacts
+                this.lampLight.shadow.bias = -0.001; // Reduce shadow acne
+                this.lampIsOn = false;
+                this.scene.add(this.lampLight);
+
+                // Add an invisible hitbox for click detection
+                const hitboxGeometry = new THREE.BoxGeometry(1, 1.5, 1);
+                const hitboxMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x00ff00,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.5
+                });
+                this.lampHitbox = new THREE.Mesh(hitboxGeometry, hitboxMaterial);
+                this.lampHitbox.position.copy(this.lamp.position);
+                this.lampHitbox.position.y += 0.5; // Center the hitbox vertically
+                this.lampHitbox.name = "LampHitbox";
+                this.lampHitbox.visible = false; // Make hitbox invisible
+                this.scene.add(this.lampHitbox);
+
+                // Load lamp click sound
+                this.lampSound = new THREE.Audio(this.listener);
+                this.audioLoader.load('includes/sounds/lamp.wav', (buffer) => {
+                    this.lampSound.setBuffer(buffer);
+                    this.lampSound.setVolume(0.5);
                 });
 
                 this.scene.add(this.lamp);
@@ -253,8 +315,16 @@ export class SceneManager {
 
         const targetRotation = this.doorOpen ? -Math.PI / 2 : 0;
         const startRotation = this.door.rotation.y;
-        const duration = 0.5; // 0.5 seconds for faster animation
+        const duration = 0.5; // 1 second animation
         let elapsed = 0;
+
+        // Play door sound
+        if (this.doorSound && this.doorSound.buffer) {
+            if (this.doorSound.isPlaying) {
+                this.doorSound.stop();
+            }
+            this.doorSound.play();
+        }
 
         const animate = () => {
             elapsed += this.clock.getDelta();
@@ -279,6 +349,23 @@ export class SceneManager {
 
     update(deltaTime) {
         // Update logic if needed
+    }
+
+    toggleLamp() {
+        if (!this.lampLight) return;
+
+        this.lampIsOn = !this.lampIsOn;
+        this.lampLight.intensity = this.lampIsOn ? 4 : 0; // Stronger light intensity
+
+        // Play lamp click sound
+        if (this.lampSound && this.lampSound.buffer) {
+            if (this.lampSound.isPlaying) {
+                this.lampSound.stop();
+            }
+            this.lampSound.play();
+        }
+
+        return this.lampIsOn;
     }
 
     render() {

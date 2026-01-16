@@ -17,10 +17,12 @@ inputHandler.onToggleDayNight = () => {
     setTimeout(() => uiContainer.innerText = "", 2000);
 };
 
-inputHandler.onToggleDoor = () => {
+interactionManager.onToggleLamp = () => {
+    return sceneManager.toggleLamp();
+};
+
+interactionManager.onToggleDoor = () => {
     sceneManager.toggleDoor();
-    uiContainer.innerText = "Door";
-    setTimeout(() => uiContainer.innerText = "", 1000);
 };
 
 instructions.addEventListener('click', () => {
@@ -34,6 +36,16 @@ inputHandler.onLock = () => {
 inputHandler.onUnlock = () => {
     instructions.style.display = 'block';
 };
+
+// Speed slider control
+const speedSlider = document.getElementById('speed-slider');
+const speedValue = document.getElementById('speed-value');
+
+speedSlider.addEventListener('input', (e) => {
+    const speed = parseFloat(e.target.value);
+    inputHandler.speed = speed;
+    speedValue.textContent = speed;
+});
 
 function animate() {
     requestAnimationFrame(animate);

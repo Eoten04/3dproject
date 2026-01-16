@@ -10,6 +10,9 @@ export class InteractionManager {
 
         this.center = new THREE.Vector2(0, 0);
 
+        this.onToggleLamp = () => { }; // Callback for lamp toggle
+        this.onToggleDoor = () => { }; // Callback for door toggle
+
         this.init();
     }
 
@@ -18,7 +21,7 @@ export class InteractionManager {
     }
 
     onClick() {
-            this.raycaster.setFromCamera(this.center, this.camera);
+        this.raycaster.setFromCamera(this.center, this.camera);
 
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
 
@@ -43,6 +46,10 @@ export class InteractionManager {
             this.animateDoor(target);
         } else if (target.name === 'Statue') {
             this.showInfo(target.userData.info);
+        } else if (target.name === 'LampHitbox' || target.name === 'Lamp') {
+            this.toggleLamp();
+        } else if (target.name === 'DoorPivot' || target.name === 'DoorModel' || target.name === 'DoorHitbox') {
+            this.toggleDoor();
         }
     }
 
@@ -67,5 +74,17 @@ export class InteractionManager {
         this.infoTimeout = setTimeout(() => {
             this.uiContainer.innerText = "";
         }, 3000);
+    }
+
+    toggleLamp() {
+        const isOn = this.onToggleLamp();
+        this.uiContainer.innerText = isOn ? "Lamp ON" : "Lamp OFF";
+        setTimeout(() => this.uiContainer.innerText = "", 1000);
+    }
+
+    toggleDoor() {
+        this.onToggleDoor();
+        this.uiContainer.innerText = "Door";
+        setTimeout(() => this.uiContainer.innerText = "", 1000);
     }
 }
