@@ -160,6 +160,47 @@ export class SceneManager {
 
         this.scene.add(houseGroup);
 
+        // Create parquet floor inside the house (7x7m)
+        const parquetGeometry = new THREE.PlaneGeometry(7, 7);
+
+        // Create a canvas texture for the parquet
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // Draw parquet pattern
+        const plankWidth = 64;
+        const plankHeight = 256;
+        const colors = ['#8B4513', '#A0522D', '#CD853F', '#DEB887'];
+
+        for (let y = 0; y < canvas.height; y += plankHeight) {
+            for (let x = 0; x < canvas.width; x += plankWidth) {
+                ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+                ctx.fillRect(x, y, plankWidth, plankHeight);
+                ctx.strokeStyle = '#654321';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, plankWidth, plankHeight);
+            }
+        }
+
+        const parquetTexture = new THREE.CanvasTexture(canvas);
+        parquetTexture.wrapS = THREE.RepeatWrapping;
+        parquetTexture.wrapT = THREE.RepeatWrapping;
+        parquetTexture.repeat.set(2, 2);
+
+        const parquetMaterial = new THREE.MeshStandardMaterial({
+            map: parquetTexture,
+            roughness: 0.7,
+            metalness: 0.1
+        });
+
+        const parquetFloor = new THREE.Mesh(parquetGeometry, parquetMaterial);
+        parquetFloor.rotation.x = -Math.PI / 2;
+        parquetFloor.position.set(0, 0.01, -10); // Slightly above ground, centered in house
+        parquetFloor.receiveShadow = true;
+        this.scene.add(parquetFloor);
+
         // Load door GLB model
         this.loader.load('includes/door.glb', (gltf) => {
             const doorModel = gltf.scene;
