@@ -97,16 +97,124 @@ export class SceneManager {
         leftWall.receiveShadow = true;
         houseGroup.add(leftWall);
 
-        // Right wall (full)
-        const rightWall = new THREE.Mesh(
-            new THREE.PlaneGeometry(houseDepth, houseHeight),
+        // Right wall with window
+        const rightWallGroup = new THREE.Group();
+        rightWallGroup.position.set(houseWidth / 2, 0, 0);
+        rightWallGroup.rotation.y = -Math.PI / 2;
+        houseGroup.add(rightWallGroup);
+
+        const windowWidth = 2;
+        const windowHeight = 1.5;
+        const windowBottom = 1.5;
+
+        // Bottom part
+        const rwBottom = new THREE.Mesh(
+            new THREE.PlaneGeometry(houseDepth, windowBottom),
             wallMaterial
         );
-        rightWall.position.set(houseWidth / 2, houseHeight / 2, 0);
-        rightWall.rotation.y = -Math.PI / 2;
-        rightWall.castShadow = true;
-        rightWall.receiveShadow = true;
-        houseGroup.add(rightWall);
+        rwBottom.position.set(0, windowBottom / 2, 0);
+        rwBottom.receiveShadow = true;
+        rwBottom.castShadow = true;
+        rightWallGroup.add(rwBottom);
+
+        // Top part
+        const topHeight = houseHeight - (windowBottom + windowHeight);
+        const rwTop = new THREE.Mesh(
+            new THREE.PlaneGeometry(houseDepth, topHeight),
+            wallMaterial
+        );
+        rwTop.position.set(0, houseHeight - topHeight / 2, 0);
+        rwTop.receiveShadow = true;
+        rwTop.castShadow = true;
+        rightWallGroup.add(rwTop);
+
+        // Left side part
+        const sideWidth = (houseDepth - windowWidth) / 2;
+        const rwLeft = new THREE.Mesh(
+            new THREE.PlaneGeometry(sideWidth, windowHeight),
+            wallMaterial
+        );
+        rwLeft.position.set(-(windowWidth + sideWidth) / 2, windowBottom + windowHeight / 2, 0);
+        rwLeft.receiveShadow = true;
+        rwLeft.castShadow = true;
+        rightWallGroup.add(rwLeft);
+
+        // Right side part
+        const rwRight = new THREE.Mesh(
+            new THREE.PlaneGeometry(sideWidth, windowHeight),
+            wallMaterial
+        );
+        rwRight.position.set((windowWidth + sideWidth) / 2, windowBottom + windowHeight / 2, 0);
+        rwRight.receiveShadow = true;
+        rwRight.castShadow = true;
+        rightWallGroup.add(rwRight);
+
+        // Window Glass
+        const glassMaterial = new THREE.MeshStandardMaterial({
+            color: 0x88ccff,
+            transparent: true,
+            opacity: 0.3,
+            metalness: 0.9,
+            roughness: 0.1,
+            side: THREE.DoubleSide
+        });
+        const windowGlass = new THREE.Mesh(
+            new THREE.PlaneGeometry(windowWidth, windowHeight),
+            glassMaterial
+        );
+        windowGlass.position.set(0, windowBottom + windowHeight / 2, 0);
+        rightWallGroup.add(windowGlass);
+
+        // Window Frame (Horizontal Top)
+        const frameThickness = 0.1;
+        const frameDepth = 0.2;
+        const frameMaterial = new THREE.MeshStandardMaterial({ color: 0x4a3c31 }); // Darker wood
+
+        const frameTop = new THREE.Mesh(
+            new THREE.BoxGeometry(windowWidth + frameThickness * 2, frameThickness, frameDepth),
+            frameMaterial
+        );
+        frameTop.position.set(0, windowBottom + windowHeight + frameThickness / 2, 0);
+        rightWallGroup.add(frameTop);
+
+        // Window Frame (Horizontal Bottom)
+        const frameBot = new THREE.Mesh(
+            new THREE.BoxGeometry(windowWidth + frameThickness * 2, frameThickness, frameDepth),
+            frameMaterial
+        );
+        frameBot.position.set(0, windowBottom - frameThickness / 2, 0);
+        rightWallGroup.add(frameBot);
+
+        // Window Frame (Vertical Left)
+        const frameLeft = new THREE.Mesh(
+            new THREE.BoxGeometry(frameThickness, windowHeight, frameDepth),
+            frameMaterial
+        );
+        frameLeft.position.set(-(windowWidth + frameThickness) / 2, windowBottom + windowHeight / 2, 0);
+        rightWallGroup.add(frameLeft);
+
+        // Window Frame (Vertical Right)
+        const frameRight = new THREE.Mesh(
+            new THREE.BoxGeometry(frameThickness, windowHeight, frameDepth),
+            frameMaterial
+        );
+        frameRight.position.set((windowWidth + frameThickness) / 2, windowBottom + windowHeight / 2, 0);
+        rightWallGroup.add(frameRight);
+
+        // Window Cross Bars (Optional - simple cross)
+        const crossBarH = new THREE.Mesh(
+            new THREE.BoxGeometry(windowWidth, frameThickness / 2, frameDepth / 2),
+            frameMaterial
+        );
+        crossBarH.position.set(0, windowBottom + windowHeight / 2, 0);
+        rightWallGroup.add(crossBarH);
+
+        const crossBarV = new THREE.Mesh(
+            new THREE.BoxGeometry(frameThickness / 2, windowHeight, frameDepth / 2),
+            frameMaterial
+        );
+        crossBarV.position.set(0, windowBottom + windowHeight / 2, 0);
+        rightWallGroup.add(crossBarV);
 
         // Front wall with door entrance (split into parts)
         const doorWidth = 1.5;
@@ -262,13 +370,7 @@ export class SceneManager {
         gong.name = "Gong";
         this.scene.add(gong);
 
-        const statueGeo = new THREE.SphereGeometry(0.5, 32, 32);
-        const statueMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.4 });
-        const statue = new THREE.Mesh(statueGeo, statueMat);
-        statue.position.set(-5, 0.5, -5);
-        statue.name = "Statue";
-        statue.userData = { info: "Ancient Buddha Statue: Symbol of peace." };
-        this.scene.add(statue);
+
 
         // Load table GLB model inside the house
         this.loader.load('includes/table.glb', (gltf) => {
