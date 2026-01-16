@@ -27,10 +27,12 @@ export class InputHandler {
             switch (event.code) {
                 case 'ArrowUp':
                 case 'KeyW':
+                case 'KeyZ':
                     this.moveForward = true;
                     break;
                 case 'ArrowLeft':
                 case 'KeyA':
+                case 'KeyQ':
                     this.moveLeft = true;
                     break;
                 case 'ArrowDown':
@@ -51,10 +53,12 @@ export class InputHandler {
             switch (event.code) {
                 case 'ArrowUp':
                 case 'KeyW':
+                case 'KeyZ':
                     this.moveForward = false;
                     break;
                 case 'ArrowLeft':
                 case 'KeyA':
+                case 'KeyQ':
                     this.moveLeft = false;
                     break;
                 case 'ArrowDown':
