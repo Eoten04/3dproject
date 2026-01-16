@@ -52,7 +52,7 @@ export class InteractionManager {
                 this.toggleLamp();
                 found = true;
                 break;
-            } else if (target.name === 'DoorPivot' || target.name === 'DoorModel' || target.name === 'DoorHitbox') {
+            } else if (target.name === 'DoorPivot' || target.name === 'DoorModel' || target.name === 'DoorHitbox' || target.name === 'DoorBlocker') {
                 this.toggleDoor();
                 found = true;
                 break;

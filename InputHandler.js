@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 export class InputHandler {
-    constructor(camera, domElement) {
+    constructor(camera, domElement, sceneManager) {
         this.camera = camera;
+        this.sceneManager = sceneManager;
         this.controls = new PointerLockControls(camera, domElement);
         this.moveForward = false;
         this.moveBackward = false;
@@ -138,7 +139,35 @@ export class InputHandler {
 
             // Check for NaN
             if (!isNaN(moveVector.x) && !isNaN(moveVector.y) && !isNaN(moveVector.z)) {
-                camera.position.add(moveVector);
+
+                // Collision Detection
+                const nextPosition = this.camera.position.clone().add(moveVector);
+                const playerBox = new THREE.Box3();
+                const playerSize = 0.5; // Size of player hitbox
+                playerBox.setFromCenterAndSize(nextPosition, new THREE.Vector3(playerSize, playerSize, playerSize));
+
+                let collision = false;
+                if (this.sceneManager && this.sceneManager.getCollidables) {
+                    const collidables = this.sceneManager.getCollidables();
+
+                    const objectBox = new THREE.Box3();
+
+                    for (const object of collidables) {
+                        objectBox.setFromObject(object);
+                        if (playerBox.intersectsBox(objectBox)) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!collision) {
+                    this.camera.position.add(moveVector);
+                } else {
+                    // Optional: Sliding logic could go here. For now, just stop.
+                    // To improve feel, we could try moving only X or only Z
+                }
+
             } else {
                 console.error("InputHandler: moveVector NaN", moveVector);
                 // Reset velocity to recover

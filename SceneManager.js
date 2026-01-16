@@ -8,6 +8,7 @@ export class SceneManager {
         this.door = null;
         this.doorOpen = false;
         this.doorAnimating = false;
+        this.collidables = []; // Array to store objects that block movement
 
         // Audio setup
         this.listener = new THREE.AudioListener();
@@ -85,6 +86,7 @@ export class SceneManager {
         backWall.castShadow = true;
         backWall.receiveShadow = true;
         houseGroup.add(backWall);
+        this.collidables.push(backWall);
 
         // Left wall (full)
         const leftWall = new THREE.Mesh(
@@ -96,6 +98,7 @@ export class SceneManager {
         leftWall.castShadow = true;
         leftWall.receiveShadow = true;
         houseGroup.add(leftWall);
+        this.collidables.push(leftWall);
 
         // Right wall with window
         const rightWallGroup = new THREE.Group();
@@ -116,6 +119,7 @@ export class SceneManager {
         rwBottom.receiveShadow = true;
         rwBottom.castShadow = true;
         rightWallGroup.add(rwBottom);
+        this.collidables.push(rwBottom);
 
         // Top part
         const topHeight = houseHeight - (windowBottom + windowHeight);
@@ -127,6 +131,7 @@ export class SceneManager {
         rwTop.receiveShadow = true;
         rwTop.castShadow = true;
         rightWallGroup.add(rwTop);
+        this.collidables.push(rwTop);
 
         // Left side part
         const sideWidth = (houseDepth - windowWidth) / 2;
@@ -138,6 +143,7 @@ export class SceneManager {
         rwLeft.receiveShadow = true;
         rwLeft.castShadow = true;
         rightWallGroup.add(rwLeft);
+        this.collidables.push(rwLeft);
 
         // Right side part
         const rwRight = new THREE.Mesh(
@@ -148,6 +154,7 @@ export class SceneManager {
         rwRight.receiveShadow = true;
         rwRight.castShadow = true;
         rightWallGroup.add(rwRight);
+        this.collidables.push(rwRight);
 
         // Window Glass
         const glassMaterial = new THREE.MeshStandardMaterial({
@@ -230,6 +237,7 @@ export class SceneManager {
         frontLeftWall.castShadow = true;
         frontLeftWall.receiveShadow = true;
         houseGroup.add(frontLeftWall);
+        this.collidables.push(frontLeftWall);
 
         // Right part of front wall
         const frontRightWall = new THREE.Mesh(
@@ -241,6 +249,7 @@ export class SceneManager {
         frontRightWall.castShadow = true;
         frontRightWall.receiveShadow = true;
         houseGroup.add(frontRightWall);
+        this.collidables.push(frontRightWall);
 
         // Top part of front wall (above door)
         const frontTopWall = new THREE.Mesh(
@@ -252,6 +261,7 @@ export class SceneManager {
         frontTopWall.castShadow = true;
         frontTopWall.receiveShadow = true;
         houseGroup.add(frontTopWall);
+        this.collidables.push(frontTopWall);
 
         // Create a pyramid roof
         const roofGeometry = new THREE.ConeGeometry(houseWidth * 0.8, 2, 4);
@@ -308,6 +318,8 @@ export class SceneManager {
         parquetFloor.position.set(0, 0.01, -10); // Slightly above ground, centered in house
         parquetFloor.receiveShadow = true;
         this.scene.add(parquetFloor);
+
+        this.createDoorBlocker(1.5, 2.8, 7);
 
         // Load door GLB model
         this.loader.load('includes/door.glb', (gltf) => {
@@ -438,6 +450,13 @@ export class SceneManager {
 
             this.scene.add(this.table);
 
+            // Add table to collidables
+            this.table.traverse((child) => {
+                if (child.isMesh) {
+                    this.collidables.push(child);
+                }
+            });
+
             // Load lamp GLB model on the table
             this.loader.load('includes/lamp.glb', (gltf) => {
                 this.lamp = gltf.scene;
@@ -497,6 +516,22 @@ export class SceneManager {
 
     }
 
+    createDoorBlocker(width, height, houseDepth) {
+        // Create invisible blocker for the door
+        const blockerGeo = new THREE.BoxGeometry(width, height, 0.5);
+        const blockerMat = new THREE.MeshBasicMaterial({ visible: false, wireframe: true });
+        this.doorBlocker = new THREE.Mesh(blockerGeo, blockerMat);
+        // Position in the doorway
+        this.doorBlocker.position.set(0, height / 2, -10 + houseDepth / 2);
+        this.doorBlocker.name = "DoorBlocker";
+        this.scene.add(this.doorBlocker);
+        this.collidables.push(this.doorBlocker);
+    }
+
+    getCollidables() {
+        return this.collidables;
+    }
+
     toggleDoor() {
         if (!this.door || this.doorAnimating) return;
 
@@ -531,6 +566,20 @@ export class SceneManager {
                 requestAnimationFrame(animate);
             } else {
                 this.doorAnimating = false;
+
+                // Update collision state after animation
+                if (this.doorOpen) {
+                    // Remove blocker
+                    const index = this.collidables.indexOf(this.doorBlocker);
+                    if (index > -1) {
+                        this.collidables.splice(index, 1);
+                    }
+                } else {
+                    // Add blocker if not present
+                    if (!this.collidables.includes(this.doorBlocker)) {
+                        this.collidables.push(this.doorBlocker);
+                    }
+                }
             }
         };
 

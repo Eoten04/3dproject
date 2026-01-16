@@ -6,7 +6,7 @@ const uiContainer = document.getElementById('ui-container');
 const instructions = document.getElementById('instructions');
 
 const sceneManager = new SceneManager(document.body);
-const inputHandler = new InputHandler(sceneManager.camera, document.body);
+const inputHandler = new InputHandler(sceneManager.camera, document.body, sceneManager);
 const interactionManager = new InteractionManager(sceneManager.camera, sceneManager.scene, uiContainer);
 
 let isNight = false;
