@@ -156,7 +156,7 @@ export class SceneManager {
         this.scene.add(houseGroup);
 
         // Load door GLB model
-        this.loader.load('door.glb', (gltf) => {
+        this.loader.load('includes/door.glb', (gltf) => {
             const doorModel = gltf.scene;
             doorModel.name = "DoorModel";
 
@@ -202,6 +202,46 @@ export class SceneManager {
         statue.name = "Statue";
         statue.userData = { info: "Ancient Buddha Statue: Symbol of peace." };
         this.scene.add(statue);
+
+        // Load table GLB model inside the house
+        this.loader.load('includes/table.glb', (gltf) => {
+            this.table = gltf.scene;
+            this.table.name = "Table";
+
+            // Position table inside the house (corner position)
+            this.table.position.set(-2.5, 0, -12);
+            this.table.scale.set(0.35, 0.35, 0.35);
+
+            // Enable shadows
+            this.table.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            this.scene.add(this.table);
+
+            // Load lamp GLB model on the table
+            this.loader.load('includes/lamp.glb', (gltf) => {
+                this.lamp = gltf.scene;
+                this.lamp.name = "Lamp";
+
+                // Position lamp on top of the table (same x,z as table, higher y)
+                this.lamp.position.set(-2.5, 1.2, -12);
+                this.lamp.scale.set(0.8, 0.8, 0.8);
+
+                // Enable shadows
+                this.lamp.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+                });
+
+                this.scene.add(this.lamp);
+            });
+        });
 
     }
 
