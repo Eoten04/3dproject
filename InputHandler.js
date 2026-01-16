@@ -13,7 +13,7 @@ export class InputHandler {
         this.velocity = new THREE.Vector3();
         this.direction = new THREE.Vector3();
         this.isLocked = false;
-        this.speed = 250.0; // Configurable movement speed
+        this.speed = 250.0;
 
         this.onLock = () => { };
         this.onUnlock = () => { };
@@ -88,48 +88,34 @@ export class InputHandler {
 
     update(delta) {
         if (this.controls.isLocked === true) {
-            // Safety check for delta
-            const safeDelta = Math.min(delta, 0.1); // Cap delta at 0.1s to prevent explosions
+            const safeDelta = Math.min(delta, 0.1);
 
-            // Deceleration (damping)
             this.velocity.x -= this.velocity.x * 10.0 * safeDelta;
             this.velocity.z -= this.velocity.z * 10.0 * safeDelta;
 
-            // Input direction calculation
             this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
             this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
             this.direction.normalize();
 
-            // Acceleration (using configurable speed)
             if (this.moveForward || this.moveBackward) this.velocity.z -= this.direction.z * this.speed * safeDelta;
             if (this.moveLeft || this.moveRight) this.velocity.x -= this.direction.x * this.speed * safeDelta;
 
-            // Manual Movement Implementation
             const camera = this.camera;
 
-            // Forward/Backward Movement (XZ plane only)
             const forward = new THREE.Vector3();
             camera.getWorldDirection(forward);
 
-            // Robust Flattening
             forward.y = 0;
             if (forward.lengthSq() < 0.001) {
-                // If looking straight up/down, forward projects to 0
-                // Use default forward (0,0,-1) rotated by camera Y? 
-                // Simplest fallback: just don't move forward/backward if strictly vertical looking, 
-                // OR assume camera rotation y is valid.
-                // Re-calculating forward from camera rotation directly might be safer:
-                // But generally, just preventing normalize(0) is enough.
                 forward.set(0, 0, -1);
                 forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), camera.rotation.y);
             }
             forward.normalize();
 
-            // Right/Left Movement (XZ plane only)
             const right = new THREE.Vector3();
             right.crossVectors(forward, camera.up);
             if (right.lengthSq() < 0.001) {
-                right.set(1, 0, 0); // Fallback
+                right.set(1, 0, 0);
             }
             right.normalize();
 
@@ -137,13 +123,11 @@ export class InputHandler {
             moveVector.addScaledVector(forward, -this.velocity.z * safeDelta);
             moveVector.addScaledVector(right, -this.velocity.x * safeDelta);
 
-            // Check for NaN
             if (!isNaN(moveVector.x) && !isNaN(moveVector.y) && !isNaN(moveVector.z)) {
 
-                // Collision Detection
                 const nextPosition = this.camera.position.clone().add(moveVector);
                 const playerBox = new THREE.Box3();
-                const playerSize = 0.5; // Size of player hitbox
+                const playerSize = 0.5;
                 playerBox.setFromCenterAndSize(nextPosition, new THREE.Vector3(playerSize, playerSize, playerSize));
 
                 let collision = false;
@@ -163,14 +147,10 @@ export class InputHandler {
 
                 if (!collision) {
                     this.camera.position.add(moveVector);
-                } else {
-                    // Optional: Sliding logic could go here. For now, just stop.
-                    // To improve feel, we could try moving only X or only Z
                 }
 
             } else {
                 console.error("InputHandler: moveVector NaN", moveVector);
-                // Reset velocity to recover
                 this.velocity.set(0, 0, 0);
             }
         }

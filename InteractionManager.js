@@ -10,9 +10,9 @@ export class InteractionManager {
 
         this.center = new THREE.Vector2(0, 0);
 
-        this.onToggleLamp = () => { }; // Callback for lamp toggle
-        this.onToggleDoor = () => { }; // Callback for door toggle
-        this.onRingDoorbell = () => { }; // Callback for doorbell
+        this.onToggleLamp = () => { };
+        this.onToggleDoor = () => { };
+        this.onRingDoorbell = () => { };
 
         this.init();
     }
@@ -36,7 +36,6 @@ export class InteractionManager {
         let target = object;
         let found = false;
 
-        // Traverse up checking for known interactables
         while (target && target !== this.scene) {
             console.log("Checking target:", target.name, target.type);
 

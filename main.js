@@ -41,7 +41,6 @@ inputHandler.onUnlock = () => {
     instructions.style.display = 'block';
 };
 
-// Speed slider control
 const speedSlider = document.getElementById('speed-slider');
 const speedValue = document.getElementById('speed-value');
 
